@@ -380,6 +380,7 @@ class TagPageUIHandler extends Component {
         this.register(
             // Open tag page w/alt click (current pane) or ctrl/cmd/middle click (new pane)
             onElement(document, hoverSource === "editor" ? "mousedown" : "click", selector, (event, targetEl) => {
+                const app = this.plugin.app
                 const { altKey, shiftKey, ctrlKey, metaKey} = event;
                 const isMod = Keymap.isModEvent(event);
                 if (!isMod && !altKey && !shiftKey && !ctrlKey && !metaKey) return;
@@ -418,6 +419,7 @@ class TagPageUIHandler extends Component {
 
                 async function updateQueryHandler(tagName, addTag=true, clearQuery=false) {
                     const search = app.internalPlugins.getPluginById("global-search")?.instance;
+
                     
                     const tagQuery = addTag ? `tag:#${tagName}` : `-tag:#${tagName}`;
                     
@@ -430,7 +432,7 @@ class TagPageUIHandler extends Component {
                     
                     const tagQueryAlreadyExisting = new RegExp(`(^|\\s)${tagQuery}`).test(currQuery)
                     setQuery(tagQueryAlreadyExisting ? currQueryTagRemoved : newQueryComputed)
-
+                    
                     async function setQuery(query){
                         const searchView = await (async () => {
                             const searchLeaves = app.workspace.getLeavesOfType('search');
