@@ -377,9 +377,6 @@ class TagPageUIHandler extends Component {
                 }, {capture: false})
             );
         }
-        // todo: add shift option here
-        // todo: alt should add negative search
-        // todo: shift should add to the search
         this.register(
             // Open tag page w/alt click (current pane) or ctrl/cmd/middle click (new pane)
             onElement(document, hoverSource === "editor" ? "mousedown" : "click", selector, (event, targetEl) => {
@@ -422,21 +419,17 @@ class TagPageUIHandler extends Component {
                 async function updateQueryHandler(tagName, addTag=true, clearQuery=false) {
                     const search = app.internalPlugins.getPluginById("global-search")?.instance;
                     
-                    const includeTag = `tag:#${tagName}`;
-                    const excludeTag = `-tag:#${tagName}`;
-                    const tagQuery = addTag ? includeTag : excludeTag;
+                    const tagQuery = addTag ? `tag:#${tagName}` : `-tag:#${tagName}`;
                     
                     const cleanupRegex = new RegExp(`(^|\\s*)(-|)tag:#${tagName}`);
-                    const currentQuery = search.getGlobalSearchQuery()
-                    const currentQueryTagRemoved = currentQuery.replace(cleanupRegex,'');
+                    const currQuery = search.getGlobalSearchQuery()
+                    const currQueryTagRemoved = currQuery.replace(cleanupRegex,'');
 
-                    const queryRestetNeeded = clearQuery || currentQueryTagRemoved.length == 0;
-                    const newQueryCombined = queryRestetNeeded ? tagQuery : `${currentQueryTagRemoved} ${tagQuery}`;
+                    const queryResetNeeded = clearQuery || currQueryTagRemoved.length == 0;
+                    const newQueryComputed = queryResetNeeded ? tagQuery : `${currQueryTagRemoved} ${tagQuery}`;
                     
-                    const checkForExistance = addTag ? new RegExp(`(^|\\s)${includeTag}`).test(currentQuery) : currentQuery.includes(tagQuery);
-
-                    setQuery(checkForExistance ? currentQueryTagRemoved : newQueryCombined)
-
+                    const tagQueryAlreadyExisting = new RegExp(`(^|\\s)${tagQuery}`).test(currQuery)
+                    setQuery(tagQueryAlreadyExisting ? currQueryTagRemoved : newQueryComputed)
 
                     async function setQuery(query){
                         const searchView = await (async () => {
