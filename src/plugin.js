@@ -383,38 +383,22 @@ class TagPageUIHandler extends Component {
         this.register(
             // Open tag page w/alt click (current pane) or ctrl/cmd/middle click (new pane)
             onElement(document, hoverSource === "editor" ? "mousedown" : "click", selector, (event, targetEl) => {
-                const {altKey, shiftKey} = event;
+                const { altKey, shiftKey, ctrlKey, metaKey} = event;
                 const isMod = Keymap.isModEvent(event);
-                if (!isMod && !altKey && !shiftKey) return;
-                const search = app.internalPlugins.getPluginById("global-search")?.instance;
+                if (!isMod && !altKey && !shiftKey && !ctrlKey && !metaKey) return;
+
                 const tagName = toTag(targetEl), tp = tagName && this.plugin.tagPage(tagName);
-                
-                async function updateQuery(newQuery){
 
-                    const searchLeaves = app.workspace.getLeavesOfType('search');
-                    if (searchLeaves.length > 0) {
-                        const searchView = searchLeaves[0].view;
-                        searchView.setQuery(newQuery);
-                    } else {
-                        // Optionally: create a new search pane if none exists
-                        const leaf = app.workspace.getLeftLeaf(false);
-                        await leaf.setViewState({ type: 'search' });
-                        const searchView = leaf.view;
-                        searchView.setQuery(newQuery);
-                    }
+                if (shiftKey && !altKey && !ctrlKey && !metaKey) {
+                    updateQueryHandler(tagName);
                 }
-
-
-
-                if (shiftKey && !altKey){
-                    const query = search.getGlobalSearchQuery()
-                    updateQuery(query + " tag:#" + tagName);
+                else if (altKey && shiftKey && !ctrlKey && !metaKey) {
+                    updateQueryHandler(tagName, false)
                 }
-                else if (altKey && shiftKey){
-                    const query = search.getGlobalSearchQuery()
-                    updateQuery(query + " -tag:#" + tagName)
+                else if (altKey && !shiftKey && !ctrlKey && !metaKey) {
+                    updateQueryHandler(tagName, false, true)
                 }
-                else{
+                else if (!altKey && !shiftKey && (ctrlKey || metaKey)) {
                     if (tp) {
                         this.plugin.openTagPage(tp, false, isMod);
                     } else {
@@ -434,6 +418,41 @@ class TagPageUIHandler extends Component {
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 return false;
+
+                async function updateQueryHandler(tagName, addTag=true, clearQuery=false) {
+                    const search = app.internalPlugins.getPluginById("global-search")?.instance;
+                    
+                    const includeTag = `tag:#${tagName}`;
+                    const excludeTag = `-tag:#${tagName}`;
+                    const tagQuery = addTag ? includeTag : excludeTag;
+                    
+                    const cleanupRegex = new RegExp(`(^|\\s*)(-|)tag:#${tagName}`);
+                    const currentQuery = search.getGlobalSearchQuery()
+                    const currentQueryTagRemoved = currentQuery.replace(cleanupRegex,'');
+
+                    const queryRestetNeeded = clearQuery || currentQueryTagRemoved.length == 0;
+                    const newQueryCombined = queryRestetNeeded ? tagQuery : `${currentQueryTagRemoved} ${tagQuery}`;
+                    
+                    const checkForExistance = addTag ? new RegExp(`(^|\\s)${includeTag}`).test(currentQuery) : currentQuery.includes(tagQuery);
+
+                    setQuery(checkForExistance ? currentQueryTagRemoved : newQueryCombined)
+
+
+                    async function setQuery(query){
+                        const searchView = await (async () => {
+                            const searchLeaves = app.workspace.getLeavesOfType('search');
+                            if (searchLeaves.length > 0) {
+                                return searchLeaves[0].view;
+                            } else {
+                                // Optionally: create a new search pane if none exists
+                                const leaf = app.workspace.getLeftLeaf(false);
+                                await leaf.setViewState({ type: 'search' });
+                                return leaf.view;
+                            }
+                        })();
+                        searchView.setQuery(query);
+                    }
+                }
             }, {capture: true})
         );
     }
