@@ -377,18 +377,48 @@ class TagPageUIHandler extends Component {
                 }, {capture: false})
             );
         }
-
+        // todo: add shift option here
+        // todo: alt should add negative search
+        // todo: shift should add to the search
         this.register(
             // Open tag page w/alt click (current pane) or ctrl/cmd/middle click (new pane)
             onElement(document, hoverSource === "editor" ? "mousedown" : "click", selector, (event, targetEl) => {
-                const {altKey} = event;
+                const {altKey, shiftKey} = event;
                 const isMod = Keymap.isModEvent(event);
-                if (!isMod && !altKey) return;
+                if (!isMod && !altKey && !shiftKey) return;
+                const search = app.internalPlugins.getPluginById("global-search")?.instance;
                 const tagName = toTag(targetEl), tp = tagName && this.plugin.tagPage(tagName);
-                if (tp) {
-                    this.plugin.openTagPage(tp, false, isMod);
-                } else {
-                    new Confirm()
+                
+                async function updateQuery(newQuery){
+
+                    const searchLeaves = app.workspace.getLeavesOfType('search');
+                    if (searchLeaves.length > 0) {
+                        const searchView = searchLeaves[0].view;
+                        searchView.setQuery(newQuery);
+                    } else {
+                        // Optionally: create a new search pane if none exists
+                        const leaf = app.workspace.getLeftLeaf(false);
+                        await leaf.setViewState({ type: 'search' });
+                        const searchView = leaf.view;
+                        searchView.setQuery(newQuery);
+                    }
+                }
+
+
+
+                if (shiftKey && !altKey){
+                    const query = search.getGlobalSearchQuery()
+                    updateQuery(query + " tag:#" + tagName);
+                }
+                else if (altKey && shiftKey){
+                    const query = search.getGlobalSearchQuery()
+                    updateQuery(query + " -tag:#" + tagName)
+                }
+                else{
+                    if (tp) {
+                        this.plugin.openTagPage(tp, false, isMod);
+                    } else {
+                        new Confirm()
                         .setTitle("Create Tag Page")
                         .setContent(`A tag page for ${tagName} does not exist.  Create it?`)
                         .confirm()
@@ -397,8 +427,10 @@ class TagPageUIHandler extends Component {
                             const search = app.internalPlugins.getPluginById("global-search")?.instance;
                             search?.openGlobalSearch("tag:#" + tagName)
                         })
-                    ;
+                        ;
+                    }
                 }
+                event.stopPropagation();
                 event.preventDefault();
                 event.stopImmediatePropagation();
                 return false;
