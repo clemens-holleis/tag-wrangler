@@ -396,13 +396,13 @@ class TagPageUIHandler extends Component {
                 const tagName = toTag(targetEl), tp = tagName && this.plugin.tagPage(tagName);
 
                 if (shiftKey && !altKey && !ctrlKey && !metaKey) {
-                    updateQueryHandler(tagName, tagQuery.include, existingQuery.keep);
+                    updateQuery(tagName, tagQuery.include, existingQuery.keep);
                 }
                 else if (altKey && shiftKey && !ctrlKey && !metaKey) {
-                    updateQueryHandler(tagName, tagQuery.exclude, existingQuery.keep)
+                    updateQuery(tagName, tagQuery.exclude, existingQuery.keep)
                 }
                 else if (altKey && !shiftKey && !ctrlKey && !metaKey) {
-                    updateQueryHandler(tagName, tagQuery.exclude, existingQuery.clear)
+                    updateQuery(tagName, tagQuery.exclude, existingQuery.clear)
                 }
                 else if (!altKey && !shiftKey && (ctrlKey || metaKey)) {
                     if (tp) {
@@ -425,7 +425,7 @@ class TagPageUIHandler extends Component {
                 event.stopImmediatePropagation();
                 return false;
 
-                async function updateQueryHandler(tagName, tagQuery, clearQuery) {
+                async function updateQuery(tagName, tagQuery, clearQuery) {
                     const search = app.internalPlugins.getPluginById("global-search")?.instance;
 
                     
