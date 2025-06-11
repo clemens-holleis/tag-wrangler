@@ -1,4 +1,7 @@
 # Obsidian Tag Wrangler Plugin
+
+
+
 > NEW in 0.6.0
 > - Open or create a tag page by alt/opt clicking a tag in any note (or the tags view)
 > - Use the Tag Wrangler context menu for tags in the body of a note (editor or preview mode)
@@ -93,6 +96,18 @@ For this reason, Tag Wrangler checks ahead of time if you are renaming tags in a
 If you are using some type of background sync (e.g. Dropbox, GDrive, Resilio, etc.), and it causes any files to be changed *while* Tag Wrangler is doing a rename, Tag Wrangler may skip the changed file(s), resulting in a partial rename.  Generally, repeating the same rename option should work to finish the process, but in case of merges you may have to be more careful.  (It's probably best you make sure any sync operations are completed before beginning any rename operations.)
 
 If many files need to be changed, or if renaming proceeds slowly, a progress dialog will be displayed, giving you the option to abort the renaming process.  This will not undo changes made prior to that point, only stop further changes from occurring.
+
+### Add tags to search Include / Exclude
+
+Use modifier key with left click on certain tags in the tags panel to add them to search queries.
+
+| Click- Modifiers         | Include / Exclude | Clear existing search query | Result                                            |
+| ------------------------ | ----------------- | --------------------------- | ------------------------------------------------- |
+| no modifier              | include           | yes                         | search for nodes including this tag               |
+| {shift}                  | include           | no                          | add inclusion of the tag to existing search       |
+| {option / alt}           | exclude           | yes                         | search for notes without this tag                 |
+| {option / alt} + {shift} | exclude           | no                          | add exclusion of the tag to existing search query |
+| {cmd / ctrl}             |                   |                             | creates a tag pane                                |
 
 ### Tags With Child Tags
 
