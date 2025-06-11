@@ -380,6 +380,14 @@ class TagPageUIHandler extends Component {
         this.register(
             // Open tag page w/alt click (current pane) or ctrl/cmd/middle click (new pane)
             onElement(document, hoverSource === "editor" ? "mousedown" : "click", selector, (event, targetEl) => {
+                const tagQuery={
+                    include: true,
+                    exclude: false,
+                }
+                const existingQuery={
+                    clear: true,
+                    keep: false,
+                }
                 const app = this.plugin.app
                 const { altKey, shiftKey, ctrlKey, metaKey} = event;
                 const isMod = Keymap.isModEvent(event);
@@ -388,13 +396,13 @@ class TagPageUIHandler extends Component {
                 const tagName = toTag(targetEl), tp = tagName && this.plugin.tagPage(tagName);
 
                 if (shiftKey && !altKey && !ctrlKey && !metaKey) {
-                    updateQueryHandler(tagName);
+                    updateQueryHandler(tagName, tagQuery.include, existingQuery.keep);
                 }
                 else if (altKey && shiftKey && !ctrlKey && !metaKey) {
-                    updateQueryHandler(tagName, false)
+                    updateQueryHandler(tagName, tagQuery.exclude, existingQuery.keep)
                 }
                 else if (altKey && !shiftKey && !ctrlKey && !metaKey) {
-                    updateQueryHandler(tagName, false, true)
+                    updateQueryHandler(tagName, tagQuery.exclude, existingQuery.clear)
                 }
                 else if (!altKey && !shiftKey && (ctrlKey || metaKey)) {
                     if (tp) {
@@ -417,11 +425,11 @@ class TagPageUIHandler extends Component {
                 event.stopImmediatePropagation();
                 return false;
 
-                async function updateQueryHandler(tagName, addTag=true, clearQuery=false) {
+                async function updateQueryHandler(tagName, tagQuery, clearQuery) {
                     const search = app.internalPlugins.getPluginById("global-search")?.instance;
 
                     
-                    const tagQuery = addTag ? `tag:#${tagName}` : `-tag:#${tagName}`;
+                    const tagQuery = tagQuery ? `tag:#${tagName}` : `-tag:#${tagName}`;
                     
                     const cleanupRegex = new RegExp(`(^|\\s*)(-|)tag:#${tagName}`);
                     const currQuery = search.getGlobalSearchQuery()
