@@ -425,20 +425,20 @@ class TagPageUIHandler extends Component {
                 event.stopImmediatePropagation();
                 return false;
 
-                async function updateQuery(tagName, tagQuery, clearQuery) {
+                async function updateQuery(tagName, includeTagQuery, clearQuery) {
                     const search = app.internalPlugins.getPluginById("global-search")?.instance;
 
                     
-                    const tagQuery = tagQuery ? `tag:#${tagName}` : `-tag:#${tagName}`;
+                    const tagQuery = includeTagQuery ? `tag:#${tagName}` : `-tag:#${tagName}`;
                     
                     const cleanupRegex = new RegExp(`(^|\\s*)(-|)tag:#${tagName}`);
                     const currQuery = search.getGlobalSearchQuery()
                     const currQueryTagRemoved = currQuery.replace(cleanupRegex,'');
 
                     const queryResetNeeded = clearQuery || currQueryTagRemoved.length == 0;
-                    const newQueryComputed = queryResetNeeded ? tagQuery : `${currQueryTagRemoved} ${tagQuery}`;
+                    const newQueryComputed = queryResetNeeded ? includeTagQuery : `${currQueryTagRemoved} ${includeTagQuery}`;
                     
-                    const tagQueryAlreadyExisting = new RegExp(`(^|\\s)${tagQuery}`).test(currQuery)
+                    const tagQueryAlreadyExisting = new RegExp(`(^|\\s)${includeTagQuery}`).test(currQuery)
                     setQuery(tagQueryAlreadyExisting ? currQueryTagRemoved : newQueryComputed)
                     
                     async function setQuery(query){
